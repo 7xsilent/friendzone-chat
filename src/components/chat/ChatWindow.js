@@ -193,19 +193,26 @@ export default function ChatWindow({
     return "";
   };
 
-  // ✅ Seen tick logic (private chat = friend must see, group = all must see)
+  // ✅ Seen tick logic
   const isMessageSeen = (msg) => {
     if (!msg.seenBy) return false;
 
+    // PRIVATE CHAT
     if (!selectedChat.isGroup) {
-      // Private chat: seen if friend also in seenBy
       const friendUid = chatDetails?.members?.find((m) => m !== currentUser.uid);
-      return friendUid && msg.seenBy.includes(friendUid);
-    } else {
-      // Group: seen only if all members saw
+      if (!friendUid) return false;
+
+      return msg.seenBy.includes(friendUid);
+    }
+
+    // GROUP CHAT
+    if (selectedChat.isGroup) {
       if (!groupData?.members) return false;
+
       return groupData.members.every((uid) => msg.seenBy.includes(uid));
     }
+
+    return false;
   };
 
   if (!selectedChat) {
@@ -544,13 +551,14 @@ const styles = {
   },
 
   backBtn: {
-    background: "rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.12)",
     border: "none",
     color: "white",
     fontSize: "18px",
     padding: "8px 12px",
     borderRadius: "10px",
     cursor: "pointer",
+    fontWeight: "bold",
   },
 
   headerAvatar: {
