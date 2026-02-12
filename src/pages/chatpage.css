@@ -1,3 +1,4 @@
+/* ===== MAIN CONTAINER ===== */
 .chat-container {
   height: 100vh;
   width: 100%;
@@ -6,7 +7,7 @@
   overflow: hidden;
 }
 
-/* Sidebar */
+/* ===== SIDEBAR ===== */
 .chat-sidebar {
   width: 320px;
   min-width: 320px;
@@ -17,23 +18,20 @@
   flex-direction: column;
 }
 
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-}
-
-/* Buttons */
-.top-buttons {
+/* ===== TOP BUTTON BAR ===== */
+.chat-topbar {
   padding: 12px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-wrap: wrap; /* ✅ IMPORTANT */
   gap: 10px;
   background: rgba(255, 255, 255, 0.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.btn {
+/* Buttons */
+.chat-btn {
+  flex: 1;
+  min-width: 120px; /* ✅ prevents breaking */
   padding: 10px;
   border: none;
   border-radius: 10px;
@@ -44,7 +42,9 @@
   font-size: 14px;
 }
 
-.groupBtn {
+.chat-group-btn {
+  flex: 1;
+  min-width: 120px;
   padding: 10px;
   border: none;
   border-radius: 10px;
@@ -55,7 +55,22 @@
   font-size: 14px;
 }
 
-.logoutBtn {
+.chat-profile-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  background: #a855f7;
+  color: white;
+  font-size: 14px;
+}
+
+.chat-logout-btn {
+  flex: 1;
+  min-width: 120px;
   padding: 10px;
   border: none;
   border-radius: 10px;
@@ -66,7 +81,14 @@
   font-size: 14px;
 }
 
-/* Chat Area */
+/* ===== SIDEBAR CONTENT ===== */
+.chat-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+/* ===== CHAT AREA ===== */
 .chat-area {
   flex: 1;
   height: 100vh;
@@ -75,49 +97,51 @@
   flex-direction: column;
 }
 
-/* Mobile back bar */
-.mobile-back-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
+/* ========================================================= */
+/* ===================== MOBILE RESPONSIVE ================= */
+/* ========================================================= */
 
-.backBtn {
-  background: #3b82f6;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  color: white;
-  font-size: 14px;
-}
-
-.mobile-chat-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-}
-
-/* ✅ MOBILE VIEW FIX */
 @media (max-width: 768px) {
   .chat-container {
     flex-direction: column;
+    height: 100vh;
   }
 
   .chat-sidebar {
     width: 100%;
     min-width: 100%;
-    height: 100vh;
+    height: auto;
     border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .chat-topbar {
+    justify-content: center;
+  }
+
+  .chat-btn,
+  .chat-group-btn,
+  .chat-profile-btn,
+  .chat-logout-btn {
+    flex: 1;
+    min-width: 45%;
+    font-size: 13px;
+    padding: 10px;
   }
 
   .chat-area {
     width: 100%;
-    height: 100vh;
+    flex: 1;
+    height: auto;
+  }
+}
+
+/* Extra Small Screens */
+@media (max-width: 480px) {
+  .chat-btn,
+  .chat-group-btn,
+  .chat-profile-btn,
+  .chat-logout-btn {
+    min-width: 100%;
   }
 }
