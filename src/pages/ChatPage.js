@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import RecentChatsSidebar from "../components/chat/RecentChatsSidebar";
 import ChatSidebar from "../components/chat/ChatSidebar";
 import ChatWindow from "../components/chat/ChatWindow";
@@ -15,16 +15,6 @@ export default function ChatPage() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [showUsers, setShowUsers] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
-
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  // ✅ Detect screen resize
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const handleSelectUser = async (user) => {
     if (!currentUser || !user) return;
@@ -101,51 +91,54 @@ export default function ChatPage() {
 
   return (
     <div style={styles.container}>
-      {/* ✅ SIDEBAR (Show only if desktop OR mobile with no chat selected) */}
-      {(!isMobile || !selectedChat) && (
-        <div style={styles.sidebar}>
-          <div style={styles.topBar}>
-            <button style={styles.btn} onClick={() => setShowUsers(false)}>
-              Chats
-            </button>
+      {/* SIDEBAR */}
+      <div style={styles.sidebar}>
+        <div style={styles.topBar}>
+          <button style={styles.btn} onClick={() => setShowUsers(false)}>
+            Chats
+          </button>
 
-            <button style={styles.btn} onClick={() => setShowUsers(true)}>
-              Users
-            </button>
+          <button style={styles.btn} onClick={() => setShowUsers(true)}>
+            Users
+          </button>
 
-            <button
-              style={styles.groupBtn}
-              onClick={() => setShowGroupModal(true)}
-            >
-              + Group
-            </button>
+          <button style={styles.groupBtn} onClick={() => setShowGroupModal(true)}>
+            + Group
+          </button>
 
-            <button style={styles.logoutBtn} onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-
-          <div style={styles.sidebarContent}>
-            {showUsers ? (
-              <ChatSidebar onSelectUser={handleSelectUser} />
+          {/* ✅ PROFILE BUTTON */}
+          <button
+            style={styles.profileBtn}
+            onClick={() => (window.location.href = "/profile")}
+          >
+            {currentUser?.photoURL ? (
+              <img src={currentUser.photoURL} alt="me" style={styles.profileImg} />
             ) : (
-              <RecentChatsSidebar onSelectChat={setSelectedChat} />
+              "👤"
             )}
-          </div>
-        </div>
-      )}
+          </button>
 
-      {/* ✅ CHAT WINDOW (Show only if desktop OR chat selected in mobile) */}
-      {(!isMobile || selectedChat) && (
-        <div style={styles.chatArea}>
-          <ChatWindow
-            selectedChat={selectedChat}
-            onExitGroup={() => setSelectedChat(null)}
-            onBack={() => setSelectedChat(null)} // ✅ back button support
-            isMobile={isMobile}
-          />
+          <button style={styles.logoutBtn} onClick={handleLogout}>
+            Logout
+          </button>
         </div>
-      )}
+
+        <div style={styles.sidebarContent}>
+          {showUsers ? (
+            <ChatSidebar onSelectUser={handleSelectUser} />
+          ) : (
+            <RecentChatsSidebar onSelectChat={setSelectedChat} />
+          )}
+        </div>
+      </div>
+
+      {/* CHAT AREA */}
+      <div style={styles.chatArea}>
+        <ChatWindow
+          selectedChat={selectedChat}
+          onExitGroup={() => setSelectedChat(null)}
+        />
+      </div>
 
       {showGroupModal && (
         <CreateGroupModal
@@ -181,6 +174,7 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "10px",
+    gridAutoRows: "45px",
     background: "rgba(255,255,255,0.05)",
     borderBottom: "1px solid rgba(255,255,255,0.1)",
   },
@@ -216,6 +210,28 @@ const styles = {
     background: "#ef4444",
     color: "white",
     fontSize: "14px",
+  },
+
+  profileBtn: {
+    padding: "10px",
+    border: "none",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    background: "rgba(255,255,255,0.15)",
+    color: "white",
+    fontSize: "16px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  profileImg: {
+    width: "28px",
+    height: "28px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "2px solid #3b82f6",
   },
 
   sidebarContent: {
