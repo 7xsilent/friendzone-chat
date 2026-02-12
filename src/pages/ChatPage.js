@@ -9,7 +9,7 @@ import { logoutUser } from "../firebase/authService";
 import { generateChatId } from "../utils/generateChatId";
 import { createChatIfNotExists, createGroupChat } from "../firebase/chatService";
 
-import "./chatpage.css"; // ✅ IMPORTANT (mobile responsive CSS)
+import "./chatpage.css";
 
 export default function ChatPage() {
   const { currentUser } = useAuth();
@@ -17,6 +17,9 @@ export default function ChatPage() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [showUsers, setShowUsers] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
+
+  // ✅ Mobile screen detection
+  const isMobile = window.innerWidth <= 768;
 
   const handleSelectUser = async (user) => {
     if (!currentUser || !user) return;
@@ -91,47 +94,63 @@ export default function ChatPage() {
     window.location.href = "/login";
   };
 
+  // ✅ Back button logic (mobile)
+  const handleBack = () => {
+    setSelectedChat(null);
+  };
+
   return (
-    <div style={styles.container} className="chat-container">
+    <div className="chat-container">
       {/* SIDEBAR */}
-      <div style={styles.sidebar} className="chat-sidebar">
-        <div style={styles.topBar} className="top-buttons">
-          <button style={styles.btn} onClick={() => setShowUsers(false)}>
-            Chats
-          </button>
+      {(!isMobile || !selectedChat) && (
+        <div className="chat-sidebar">
+          <div className="top-buttons">
+            <button className="btn" onClick={() => setShowUsers(false)}>
+              Chats
+            </button>
 
-          <button style={styles.btn} onClick={() => setShowUsers(true)}>
-            Users
-          </button>
+            <button className="btn" onClick={() => setShowUsers(true)}>
+              Users
+            </button>
 
-          <button
-            style={styles.groupBtn}
-            onClick={() => setShowGroupModal(true)}
-          >
-            + Group
-          </button>
+            <button className="groupBtn" onClick={() => setShowGroupModal(true)}>
+              + Group
+            </button>
 
-          <button style={styles.logoutBtn} onClick={handleLogout}>
-            Logout
-          </button>
+            <button className="logoutBtn" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
+
+          <div className="sidebar-content">
+            {showUsers ? (
+              <ChatSidebar onSelectUser={handleSelectUser} />
+            ) : (
+              <RecentChatsSidebar onSelectChat={setSelectedChat} />
+            )}
+          </div>
         </div>
-
-        <div style={styles.sidebarContent}>
-          {showUsers ? (
-            <ChatSidebar onSelectUser={handleSelectUser} />
-          ) : (
-            <RecentChatsSidebar onSelectChat={setSelectedChat} />
-          )}
-        </div>
-      </div>
+      )}
 
       {/* CHAT AREA */}
-      <div style={styles.chatArea} className="chat-area">
-        <ChatWindow
-          selectedChat={selectedChat}
-          onExitGroup={() => setSelectedChat(null)}
-        />
-      </div>
+      {(!isMobile || selectedChat) && (
+        <div className="chat-area">
+          {/* ✅ Mobile back button */}
+          {isMobile && selectedChat && (
+            <div className="mobile-back-bar">
+              <button className="backBtn" onClick={handleBack}>
+                ⬅ Back
+              </button>
+              <p className="mobile-chat-title">{selectedChat.name}</p>
+            </div>
+          )}
+
+          <ChatWindow
+            selectedChat={selectedChat}
+            onExitGroup={() => setSelectedChat(null)}
+          />
+        </div>
+      )}
 
       {/* GROUP MODAL */}
       {showGroupModal && (
@@ -143,79 +162,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    height: "100vh",
-    width: "100%",
-    display: "flex",
-    background: "linear-gradient(135deg, #0f172a, #1e293b)",
-    overflow: "hidden",
-  },
-
-  sidebar: {
-    width: "320px",
-    minWidth: "320px",
-    height: "100vh",
-    background: "rgba(255,255,255,0.06)",
-    borderRight: "1px solid rgba(255,255,255,0.12)",
-    display: "flex",
-    flexDirection: "column",
-  },
-
-  topBar: {
-    padding: "12px",
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
-    background: "rgba(255,255,255,0.05)",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-  },
-
-  btn: {
-    padding: "10px",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    background: "#3b82f6",
-    color: "white",
-    fontSize: "14px",
-  },
-
-  groupBtn: {
-    padding: "10px",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    background: "#22c55e",
-    color: "white",
-    fontSize: "14px",
-  },
-
-  logoutBtn: {
-    padding: "10px",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    background: "#ef4444",
-    color: "white",
-    fontSize: "14px",
-  },
-
-  sidebarContent: {
-    flex: 1,
-    overflowY: "auto",
-    padding: "10px",
-  },
-
-  chatArea: {
-    flex: 1,
-    height: "100vh",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-  },
-};
