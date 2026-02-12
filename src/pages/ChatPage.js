@@ -9,6 +9,8 @@ import { logoutUser } from "../firebase/authService";
 import { generateChatId } from "../utils/generateChatId";
 import { createChatIfNotExists, createGroupChat } from "../firebase/chatService";
 
+import "./chatpage.css"; // ✅ IMPORTANT (mobile responsive CSS)
+
 export default function ChatPage() {
   const { currentUser } = useAuth();
 
@@ -90,10 +92,10 @@ export default function ChatPage() {
   };
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="chat-container">
       {/* SIDEBAR */}
-      <div style={styles.sidebar}>
-        <div style={styles.topBar}>
+      <div style={styles.sidebar} className="chat-sidebar">
+        <div style={styles.topBar} className="top-buttons">
           <button style={styles.btn} onClick={() => setShowUsers(false)}>
             Chats
           </button>
@@ -102,20 +104,11 @@ export default function ChatPage() {
             Users
           </button>
 
-          <button style={styles.groupBtn} onClick={() => setShowGroupModal(true)}>
-            + Group
-          </button>
-
-          {/* ✅ PROFILE BUTTON */}
           <button
-            style={styles.profileBtn}
-            onClick={() => (window.location.href = "/profile")}
+            style={styles.groupBtn}
+            onClick={() => setShowGroupModal(true)}
           >
-            {currentUser?.photoURL ? (
-              <img src={currentUser.photoURL} alt="me" style={styles.profileImg} />
-            ) : (
-              "👤"
-            )}
+            + Group
           </button>
 
           <button style={styles.logoutBtn} onClick={handleLogout}>
@@ -133,13 +126,14 @@ export default function ChatPage() {
       </div>
 
       {/* CHAT AREA */}
-      <div style={styles.chatArea}>
+      <div style={styles.chatArea} className="chat-area">
         <ChatWindow
           selectedChat={selectedChat}
           onExitGroup={() => setSelectedChat(null)}
         />
       </div>
 
+      {/* GROUP MODAL */}
       {showGroupModal && (
         <CreateGroupModal
           onClose={() => setShowGroupModal(false)}
@@ -174,7 +168,6 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "10px",
-    gridAutoRows: "45px",
     background: "rgba(255,255,255,0.05)",
     borderBottom: "1px solid rgba(255,255,255,0.1)",
   },
@@ -210,28 +203,6 @@ const styles = {
     background: "#ef4444",
     color: "white",
     fontSize: "14px",
-  },
-
-  profileBtn: {
-    padding: "10px",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    background: "rgba(255,255,255,0.15)",
-    color: "white",
-    fontSize: "16px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  profileImg: {
-    width: "28px",
-    height: "28px",
-    borderRadius: "50%",
-    objectFit: "cover",
-    border: "2px solid #3b82f6",
   },
 
   sidebarContent: {
