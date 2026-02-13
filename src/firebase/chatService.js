@@ -30,7 +30,7 @@ export const createChatIfNotExists = async (chatId, members, memberDetails) => {
       lastMessageTime: serverTimestamp(),
       createdAt: serverTimestamp(),
 
-      // ✅ seen + typing features
+      // typing + lastSeen
       typing: {},
       lastSeen: {},
     });
@@ -51,7 +51,7 @@ export const createGroupChat = async (
     chatId,
     isGroup: true,
     groupName,
-    groupPhoto: "", // will update later
+    groupPhoto: "",
     members,
     memberDetails: memberDetails || {},
     admin: adminId,
@@ -59,7 +59,6 @@ export const createGroupChat = async (
     lastMessageTime: serverTimestamp(),
     createdAt: serverTimestamp(),
 
-    // ✅ typing + seen
     typing: {},
     lastSeen: {},
   });
@@ -67,14 +66,15 @@ export const createGroupChat = async (
   return chatId;
 };
 
-// Send Message
+// ✅ Send Message (UPDATED WITH REPLY FEATURE)
 export const sendMessage = async (
   chatId,
   senderId,
   senderName,
   text,
   type = "text",
-  attachment = ""
+  attachment = "",
+  replyTo = null
 ) => {
   const msgRef = collection(db, "messages", chatId, "chatMessages");
 
@@ -86,12 +86,21 @@ export const sendMessage = async (
     attachment,
     createdAt: serverTimestamp(),
 
-    // ✅ Seen support
+    // seen support
     seenBy: [senderId],
+
+    // ✅ Reply Feature Support
+    replyTo: replyTo || null,
   });
 
   const lastMsgPreview =
-    type === "text" ? text : type === "image" ? "📷 Photo" : "📎 File";
+    type === "text"
+      ? text
+      : type === "image"
+      ? "📷 Photo"
+      : type === "file"
+      ? "📎 File"
+      : text;
 
   await updateDoc(doc(db, "chats", chatId), {
     lastMessage: lastMsgPreview,
@@ -139,6 +148,7 @@ export const exitGroup = async (chatId, userId) => {
     attachment: "",
     createdAt: serverTimestamp(),
     seenBy: [],
+    replyTo: null,
   });
 };
 
@@ -164,6 +174,7 @@ export const addMemberToGroup = async (chatId, user) => {
     attachment: "",
     createdAt: serverTimestamp(),
     seenBy: [],
+    replyTo: null,
   });
 };
 
@@ -184,10 +195,11 @@ export const removeMemberFromGroup = async (chatId, user) => {
     attachment: "",
     createdAt: serverTimestamp(),
     seenBy: [],
+    replyTo: null,
   });
 };
 
-// ✅ Mark messages as seen
+// Mark messages as seen
 export const markMessagesAsSeen = async (chatId, uid) => {
   const msgRef = collection(db, "messages", chatId, "chatMessages");
   const snap = await getDocs(msgRef);
@@ -203,7 +215,7 @@ export const markMessagesAsSeen = async (chatId, uid) => {
   });
 };
 
-// ✅ Typing status update
+// Typing status update
 export const setTypingStatus = async (chatId, uid, isTyping) => {
   const chatRef = doc(db, "chats", chatId);
 
@@ -212,7 +224,7 @@ export const setTypingStatus = async (chatId, uid, isTyping) => {
   });
 };
 
-// ✅ Listen chat document for typing
+// Listen chat document for typing
 export const listenChatDetails = (chatId, callback) => {
   const chatRef = doc(db, "chats", chatId);
 
