@@ -33,12 +33,7 @@ export default function ChatWindow({
   const [chatDetails, setChatDetails] = useState(null);
   const [friendOnline, setFriendOnline] = useState(false);
 
-  const [replyMessage, setReplyMessage] = useState(null);
-
   const bottomRef = useRef(null);
-
-  // swipe tracking
-  const swipeStartX = useRef(0);
 
   // ✅ Load messages
   useEffect(() => {
@@ -220,33 +215,6 @@ export default function ChatWindow({
     return false;
   };
 
-  // swipe reply handlers
-  const handleTouchStart = (e) => {
-    swipeStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (msg, e) => {
-    const endX = e.changedTouches[0].clientX;
-    const diff = endX - swipeStartX.current;
-
-    if (diff > 80) {
-      setReplyMessage(msg);
-    }
-  };
-
-  // desktop drag reply (optional)
-  const handleMouseDown = (e) => {
-    swipeStartX.current = e.clientX;
-  };
-
-  const handleMouseUp = (msg, e) => {
-    const diff = e.clientX - swipeStartX.current;
-
-    if (diff > 120) {
-      setReplyMessage(msg);
-    }
-  };
-
   if (!selectedChat) {
     return (
       <div style={styles.empty}>
@@ -262,7 +230,7 @@ export default function ChatWindow({
       {/* HEADER */}
       <div style={styles.header}>
         <div style={styles.headerLeft}>
-          {/* Mobile Back Button */}
+          {/* ✅ Mobile Back Button */}
           {isMobile && (
             <button style={styles.backBtn} onClick={onBack}>
               ⬅
@@ -296,6 +264,7 @@ export default function ChatWindow({
           <div>
             <h2 style={styles.headerTitle}>{selectedChat.name}</h2>
 
+            {/* Private chat online/typing */}
             {!selectedChat.isGroup && (
               <p style={styles.statusText}>
                 <span
@@ -313,6 +282,7 @@ export default function ChatWindow({
               </p>
             )}
 
+            {/* Group typing */}
             {selectedChat.isGroup && getTypingText() && (
               <p style={styles.statusText}>{getTypingText()}</p>
             )}
@@ -373,10 +343,6 @@ export default function ChatWindow({
                   ...styles.messageBubble,
                   ...(isMe ? styles.myBubble : styles.otherBubble),
                 }}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={(e) => handleTouchEnd(msg, e)}
-                onMouseDown={handleMouseDown}
-                onMouseUp={(e) => handleMouseUp(msg, e)}
               >
                 {/* Sender Name in Group */}
                 {selectedChat.isGroup && (
@@ -388,22 +354,6 @@ export default function ChatWindow({
                   >
                     {senderName}
                   </p>
-                )}
-
-                {/* Reply Box inside bubble */}
-                {msg.replyTo && (
-                  <div style={styles.replyInside}>
-                    <p style={styles.replyInsideTitle}>
-                      {msg.replyTo.senderName || "Someone"}
-                    </p>
-                    <p style={styles.replyInsideText}>
-                      {msg.replyTo.type === "image"
-                        ? "📷 Photo"
-                        : msg.replyTo.type === "file"
-                        ? "📎 File"
-                        : msg.replyTo.text}
-                    </p>
-                  </div>
                 )}
 
                 {msg.type === "text" && <p style={styles.text}>{msg.text}</p>}
@@ -455,11 +405,7 @@ export default function ChatWindow({
 
       {/* INPUT */}
       <div style={styles.inputWrapper}>
-        <MessageInput
-          chatId={selectedChat.chatId}
-          replyMessage={replyMessage}
-          setReplyMessage={setReplyMessage}
-        />
+        <MessageInput chatId={selectedChat.chatId} />
       </div>
 
       {/* FULLSCREEN IMAGE */}
@@ -731,27 +677,6 @@ const styles = {
     margin: "0 0 6px 0",
   },
 
-  replyInside: {
-    background: "rgba(0,0,0,0.25)",
-    borderLeft: "4px solid #22c55e",
-    padding: "6px 10px",
-    borderRadius: "10px",
-    marginBottom: "6px",
-  },
-
-  replyInsideTitle: {
-    margin: 0,
-    fontSize: "12px",
-    fontWeight: "bold",
-    color: "#22c55e",
-  },
-
-  replyInsideText: {
-    margin: 0,
-    fontSize: "12px",
-    color: "rgba(255,255,255,0.8)",
-  },
-
   text: {
     margin: 0,
     lineHeight: "1.4",
@@ -800,7 +725,10 @@ const styles = {
   },
 
   inputWrapper: {
-    padding: "0px",
+    padding: "12px",
+    borderTop: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.05)",
+    backdropFilter: "blur(10px)",
   },
 
   empty: {

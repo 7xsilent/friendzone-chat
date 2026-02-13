@@ -1,23 +1,16 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { sendMessage, setTypingStatus } from "../../firebase/chatService";
 import { uploadToCloudinary } from "../../utils/cloudinaryUpload";
 import { useAuth } from "../../context/AuthContext";
 import EmojiPicker from "emoji-picker-react";
 
-export default function MessageInput({ chatId, replyMessage, setReplyMessage }) {
+export default function MessageInput({ chatId }) {
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const [showEmoji, setShowEmoji] = useState(false);
   const typingTimeoutRef = useRef(null);
-
-  // auto focus when reply is set
-  useEffect(() => {
-    if (replyMessage) {
-      setText("");
-    }
-  }, [replyMessage]);
 
   const handleSend = async () => {
     if (!text.trim()) return;
@@ -29,21 +22,11 @@ export default function MessageInput({ chatId, replyMessage, setReplyMessage }) 
         currentUser.name,
         text,
         "text",
-        "",
-        replyMessage
-          ? {
-              messageId: replyMessage.id,
-              senderName: replyMessage.senderName,
-              text: replyMessage.text,
-              type: replyMessage.type,
-            }
-          : null
+        ""
       );
 
       setText("");
       setShowEmoji(false);
-
-      if (setReplyMessage) setReplyMessage(null);
 
       // stop typing after send
       await setTypingStatus(chatId, currentUser.uid, false);
@@ -89,18 +72,8 @@ export default function MessageInput({ chatId, replyMessage, setReplyMessage }) 
         currentUser.name,
         isImage ? "📷 Photo" : `📎 ${file.name}`,
         msgType,
-        url,
-        replyMessage
-          ? {
-              messageId: replyMessage.id,
-              senderName: replyMessage.senderName,
-              text: replyMessage.text,
-              type: replyMessage.type,
-            }
-          : null
+        url
       );
-
-      if (setReplyMessage) setReplyMessage(null);
 
       alert("Uploaded Successfully!");
     } catch (err) {
@@ -113,32 +86,6 @@ export default function MessageInput({ chatId, replyMessage, setReplyMessage }) 
 
   return (
     <div style={styles.container}>
-      {/* Reply Preview */}
-      {replyMessage && (
-        <div style={styles.replyBox}>
-          <div style={styles.replyTextBox}>
-            <p style={styles.replyTitle}>
-              Replying to {replyMessage.senderName === currentUser.name ? "You" : replyMessage.senderName}
-            </p>
-
-            <p style={styles.replyMsg}>
-              {replyMessage.type === "image"
-                ? "📷 Photo"
-                : replyMessage.type === "file"
-                ? "📎 File"
-                : replyMessage.text}
-            </p>
-          </div>
-
-          <button
-            style={styles.replyCloseBtn}
-            onClick={() => setReplyMessage(null)}
-          >
-            ✖
-          </button>
-        </div>
-      )}
-
       {/* Emoji Button */}
       <button
         style={styles.emojiBtn}
@@ -194,50 +141,12 @@ export default function MessageInput({ chatId, replyMessage, setReplyMessage }) 
 const styles = {
   container: {
     display: "flex",
-    flexDirection: "column",
-    padding: "10px",
-    gap: "8px",
+    alignItems: "center",
+    padding: "12px",
+    gap: "10px",
     borderTop: "1px solid rgba(255,255,255,0.1)",
     background: "rgba(255,255,255,0.05)",
     position: "relative",
-  },
-
-  replyBox: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    background: "rgba(255,255,255,0.1)",
-    padding: "10px",
-    borderRadius: "12px",
-    borderLeft: "4px solid #22c55e",
-  },
-
-  replyTextBox: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-  },
-
-  replyTitle: {
-    margin: 0,
-    color: "#22c55e",
-    fontWeight: "bold",
-    fontSize: "13px",
-  },
-
-  replyMsg: {
-    margin: 0,
-    color: "rgba(255,255,255,0.8)",
-    fontSize: "13px",
-  },
-
-  replyCloseBtn: {
-    background: "transparent",
-    border: "none",
-    color: "white",
-    fontSize: "16px",
-    cursor: "pointer",
-    fontWeight: "bold",
   },
 
   emojiBtn: {
@@ -248,12 +157,11 @@ const styles = {
     borderRadius: "12px",
     border: "none",
     color: "white",
-    width: "fit-content",
   },
 
   emojiPickerBox: {
     position: "absolute",
-    bottom: "90px",
+    bottom: "70px",
     left: "10px",
     zIndex: 2000,
   },
@@ -266,11 +174,10 @@ const styles = {
     borderRadius: "12px",
     color: "white",
     userSelect: "none",
-    width: "fit-content",
   },
 
   input: {
-    width: "100%",
+    flex: 1,
     padding: "12px",
     borderRadius: "12px",
     border: "none",
@@ -285,7 +192,5 @@ const styles = {
     cursor: "pointer",
     fontWeight: "bold",
     color: "white",
-    width: "fit-content",
-    alignSelf: "flex-end",
   },
 };
