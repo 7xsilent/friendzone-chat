@@ -1,36 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef } from "react";
 import { sendMessage, setTypingStatus } from "../../firebase/chatService";
 import { uploadToCloudinary } from "../../utils/cloudinaryUpload";
 import { useAuth } from "../../context/AuthContext";
+import EmojiPicker from "emoji-picker-react";
 
 export default function MessageInput({ chatId }) {
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  // ✅ typing timeout
-  useEffect(() => {
-    if (!chatId || !currentUser) return;
-
-    const timeout = setTimeout(() => {
-      if (text.trim().length > 0) {
-        setTypingStatus(chatId, currentUser.uid, true);
-      } else {
-        setTypingStatus(chatId, currentUser.uid, false);
-      }
-    }, 500);
-
-    return () => clearTimeout(timeout);
-  }, [text, chatId, currentUser]);
-
-  // ✅ stop typing when unmount
-  useEffect(() => {
-    return () => {
-      if (chatId && currentUser?.uid) {
-        setTypingStatus(chatId, currentUser.uid, false);
-      }
-    };
-  }, [chatId, currentUser]);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const typingTimeoutRef = useRef(null);
 
   const handleSend = async () => {
     if (!text.trim()) return;
@@ -46,11 +26,32 @@ export default function MessageInput({ chatId }) {
       );
 
       setText("");
+      setShowEmoji(false);
+
+      // stop typing after send
       await setTypingStatus(chatId, currentUser.uid, false);
     } catch (err) {
       console.log(err);
       alert("Message send failed!");
     }
+  };
+
+  const handleTyping = async (value) => {
+    setText(value);
+
+    // start typing
+    await setTypingStatus(chatId, currentUser.uid, true);
+
+    // stop typing after 2 sec of no typing
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(async () => {
+      await setTypingStatus(chatId, currentUser.uid, false);
+    }, 2000);
+  };
+
+  const handleEmojiClick = (emojiData) => {
+    setText((prev) => prev + emojiData.emoji);
   };
 
   const handleFileUpload = async (e) => {
@@ -85,6 +86,22 @@ export default function MessageInput({ chatId }) {
 
   return (
     <div style={styles.container}>
+      {/* Emoji Button */}
+      <button
+        style={styles.emojiBtn}
+        onClick={() => setShowEmoji(!showEmoji)}
+      >
+        😀
+      </button>
+
+      {/* Emoji Picker */}
+      {showEmoji && (
+        <div style={styles.emojiPickerBox}>
+          <EmojiPicker onEmojiClick={handleEmojiClick} theme="dark" />
+        </div>
+      )}
+
+      {/* File Upload */}
       <label style={styles.fileBtn}>
         📎
         <input
@@ -94,10 +111,11 @@ export default function MessageInput({ chatId }) {
         />
       </label>
 
+      {/* Input */}
       <input
         style={styles.input}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => handleTyping(e.target.value)}
         placeholder="Type a message..."
         disabled={uploading}
         onKeyDown={(e) => {
@@ -105,6 +123,7 @@ export default function MessageInput({ chatId }) {
         }}
       />
 
+      {/* Send */}
       <button
         style={{
           ...styles.sendBtn,
@@ -127,7 +146,26 @@ const styles = {
     gap: "10px",
     borderTop: "1px solid rgba(255,255,255,0.1)",
     background: "rgba(255,255,255,0.05)",
+    position: "relative",
   },
+
+  emojiBtn: {
+    fontSize: "22px",
+    cursor: "pointer",
+    background: "rgba(255,255,255,0.1)",
+    padding: "8px 12px",
+    borderRadius: "12px",
+    border: "none",
+    color: "white",
+  },
+
+  emojiPickerBox: {
+    position: "absolute",
+    bottom: "70px",
+    left: "10px",
+    zIndex: 2000,
+  },
+
   fileBtn: {
     fontSize: "22px",
     cursor: "pointer",
@@ -137,6 +175,7 @@ const styles = {
     color: "white",
     userSelect: "none",
   },
+
   input: {
     flex: 1,
     padding: "12px",
@@ -145,6 +184,7 @@ const styles = {
     outline: "none",
     fontSize: "15px",
   },
+
   sendBtn: {
     padding: "12px 18px",
     borderRadius: "12px",
